@@ -36,7 +36,7 @@ class AdminNavbarTest extends TestCase
         sort($sorted);
         $this->assertSame($sorted, $positions, 'Admin navbar items are in the wrong order.');
         $this->assertStringContainsString('>Packages</a>', $nav);
-        $this->assertStringContainsString('>Messages</a>', $nav);
+        $this->assertMatchesRegularExpression('#>Messages(<span class="nav-badge">[^<]*<span class="visually-hidden"> unread</span></span>)?</a>#', $nav);   // badge is optional
         $this->assertStringContainsString('>Banner Settings</a>', $nav);
 
         // Right side: Logout is a POST form with a CSRF token (not a GET link).

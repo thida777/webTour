@@ -1,11 +1,33 @@
-{{-- Admin pages (an /admin/... address while logged in) get the admin navbar and no footer; every other page gets the public navbar and footer. --}}
-@php($isAdminNav = request()->is('admin/*') && auth()->check())
-{{-- No footer on any /admin/... page, including the admin login page. --}}
-@php($hideFooter = request()->is('admin/*'))
-{{-- Branding logo (Admin > Banner Settings > Branding). $brandLogo is its URL, or null when there is no logo or the file is missing, so a broken image is never shown. --}}
 @php
-    $brandLogoPath = \App\Models\BannerSetting::first()?->logo;
+    // Admin pages (an /admin/... address while logged in) get the admin navbar.
+    $isAdminNav = request()->is('admin/*') && auth()->check();
+
+    // No footer on any /admin/... page, including the admin login page.
+    $hideFooter = request()->is('admin/*');
+
+    // Unread counts for the red badges in the admin navbar (contacts.is_read = 0, bookings.is_read = 0).
+    // Only counted on admin pages, so public pages run no extra queries. 100 or more is shown as "99+".
+    $unreadMessages = $isAdminNav ? \App\Models\Contact::where('is_read', false)->count() : 0;
+    $unreadBookings = $isAdminNav ? \App\Models\Booking::where('is_read', false)->count() : 0;
+
+    // The red badge HTML for a count ('' when the count is 0, so the badge is hidden completely).
+    // The number is cast to int, so it is safe to print unescaped.
+    $unreadBadge = fn (int $count) => $count > 0
+        ? '<span class="nav-badge">' . ($count > 99 ? '99+' : $count) . '<span class="visually-hidden"> unread</span></span>'
+        : '';
+
+    // Branding logo (Admin > Banner Settings > Branding). $brandLogo is its URL, or null when there is no
+    // logo or the file is missing, so a broken image is never shown.
+    $brandSetting = \App\Models\BannerSetting::first();
+    $brandLogoPath = $brandSetting?->logo;
     $brandLogo = $brandLogoPath && \Illuminate\Support\Facades\Storage::disk('public')->exists($brandLogoPath) ? asset('storage/' . $brandLogoPath) : null;
+
+    // Brand name (Admin > Banner Settings > Branding). Empty means the default "Eocambo Tours".
+    // It is shown in two colours: everything before the last word in white, the last word in gold.
+    $brandName = trim((string) $brandSetting?->brand_name) ?: 'Eocambo Tours';
+    $brandWords = preg_split('/\s+/', $brandName);
+    $brandLast = count($brandWords) > 1 ? array_pop($brandWords) : '';
+    $brandFirst = implode(' ', $brandWords);
 @endphp
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
@@ -26,9 +48,15 @@
         }
         .site-nav .navbar-brand { display: flex; align-items: center; gap: .6rem; font-weight: 800; letter-spacing: .03em; font-size: 1.35rem; }
         .site-nav .navbar-brand .brand-name span { color: #FFB81C; }
+        /* A long brand name may wrap onto several lines instead of pushing the page wider than the screen */
+        .site-nav .navbar-brand { min-width: 0; white-space: normal; }
+        .brand-name { min-width: 0; overflow-wrap: anywhere; }
+        @media (max-width: 991.98px) {
+            .site-nav .navbar-brand { flex: 1 1 0; margin-right: .75rem; line-height: 1.2; }
+        }
         /* Circular branding logo (used in the navbar and footer) */
         .brand-logo { flex: none; border-radius: 50%; object-fit: cover; background: #fff; }
-        .brand-logo-nav { width: 45px; height: 45px; box-shadow: 0 0 0 2px rgba(255, 255, 255, .6); }
+        .brand-logo-nav { width: 38px; height: 38px; box-shadow: 0 0 0 2px rgba(255, 255, 255, .6); }
         .site-nav .nav-link { position: relative; color: rgba(255, 255, 255, .85); font-weight: 600; padding: .6rem 1rem; }
         .site-nav .nav-link:hover, .site-nav .nav-link:focus { color: #fff; }
         .site-nav .nav-link.active { color: #FFB81C; }
@@ -36,6 +64,8 @@
         .site-nav .nav-link::after { content: ""; position: absolute; left: 1rem; right: 1rem; bottom: .2rem; height: 2px; background: #FFB81C; transform: scaleX(0); transition: transform .2s; }
         .site-nav .nav-link:hover::after, .site-nav .nav-link.active::after { transform: scaleX(1); }
         .site-nav .navbar-toggler { border-color: rgba(255, 255, 255, .5); }
+        /* Admin navbar: small red badge with the number of unread Messages / Bookings (red is used ONLY for these badges) */
+        .site-nav .nav-badge { display: inline-block; min-width: 1.25rem; height: 1.25rem; margin-left: .4rem; padding: 0 .3rem; border-radius: 50rem; background: #dc3545; color: #fff; font-size: .75rem; font-weight: 700; line-height: 1.25rem; text-align: center; vertical-align: text-top; }
         /* Admin navbar: gold outline Logout button */
         .site-nav .nav-logout { background: transparent; color: #FFB81C; border: 2px solid #FFB81C; border-radius: 50rem; font-weight: 700; padding: .35rem 1.25rem; transition: background .2s, color .2s; }
         .site-nav .nav-logout:hover, .site-nav .nav-logout:focus-visible { background: #FFB81C; color: #00335f; }
@@ -94,7 +124,7 @@
         .site-footer h6 { color: #FFB81C; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; font-size: .85rem; margin-bottom: .75rem; }
         .site-footer .footer-brand { display: flex; align-items: center; gap: .75rem; color: #fff; font-weight: 800; font-size: 1.35rem; letter-spacing: .03em; }
         .site-footer .footer-brand .brand-name span { color: #FFB81C; }
-        .brand-logo-footer { width: 56px; height: 56px; box-shadow: 0 0 0 2px rgba(255, 255, 255, .5); }
+        .brand-logo-footer { width: 48px; height: 48px; box-shadow: 0 0 0 2px rgba(255, 255, 255, .5); }
         .site-footer ul { list-style: none; padding: 0; margin: 0; }
         .site-footer li { margin-bottom: .35rem; }
         .site-footer a { color: rgba(255, 255, 255, .8); text-decoration: none; }
@@ -112,7 +142,7 @@
                 @if ($brandLogo)
                     <img src="{{ $brandLogo }}" alt="" class="brand-logo brand-logo-nav">
                 @endif
-                <span class="brand-name">Eocambo <span>Tours</span></span>
+                <span class="brand-name">{{ $brandFirst }}@if ($brandLast) <span>{{ $brandLast }}</span>@endif</span>
             </a>
 
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -127,10 +157,10 @@
                             <a class="nav-link {{ request()->is('admin/packages*') ? 'active' : '' }}" href="/admin/packages" @if (request()->is('admin/packages*')) aria-current="page" @endif>Packages</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {{ request()->is('admin/messages*') ? 'active' : '' }}" href="/admin/messages" @if (request()->is('admin/messages*')) aria-current="page" @endif>Messages</a>
+                            <a class="nav-link {{ request()->is('admin/messages*') ? 'active' : '' }}" href="/admin/messages" @if (request()->is('admin/messages*')) aria-current="page" @endif>Messages{!! $unreadBadge($unreadMessages) !!}</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link {{ request()->is('admin/bookings*') ? 'active' : '' }}" href="/admin/bookings" @if (request()->is('admin/bookings*')) aria-current="page" @endif>Bookings</a>
+                            <a class="nav-link {{ request()->is('admin/bookings*') ? 'active' : '' }}" href="/admin/bookings" @if (request()->is('admin/bookings*')) aria-current="page" @endif>Bookings{!! $unreadBadge($unreadBookings) !!}</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link {{ request()->is('admin/banner*') ? 'active' : '' }}" href="/admin/banner" @if (request()->is('admin/banner*')) aria-current="page" @endif>Banner Settings</a>
@@ -174,7 +204,7 @@
                         @if ($brandLogo)
                             <img src="{{ $brandLogo }}" alt="" class="brand-logo brand-logo-footer">
                         @endif
-                        <span class="brand-name">Eocambo <span>Tours</span></span>
+                        <span class="brand-name">{{ $brandFirst }}@if ($brandLast) <span>{{ $brandLast }}</span>@endif</span>
                     </div>
                     <p class="mb-0" style="max-width: 420px;">Explore ancient temples, beautiful beaches and friendly local life in the Kingdom of Wonder, with guides who love their country.</p>
                 </div>
@@ -191,7 +221,7 @@
             </div>
 
             <div class="footer-bottom text-center mt-4 pt-3">
-                &copy; {{ date('Y') }} Eocambo Tours. All rights reserved.
+                &copy; {{ date('Y') }} {{ $brandName }}. All rights reserved.
             </div>
         </div>
     </footer>

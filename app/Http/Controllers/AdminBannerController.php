@@ -29,6 +29,7 @@ class AdminBannerController extends Controller
     public function update(Request $request)
     {
         $data = $request->validate([
+            'brand_name' => 'nullable|string|max:60',
             'small_title' => 'nullable|string|max:255',
             'main_title' => 'nullable|string|max:255',
             'highlight_text' => 'nullable|string|max:255',

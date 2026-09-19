@@ -183,7 +183,7 @@ class BannerSettingsTest extends TestCase
         $html = $this->get('/')->getContent();
         $this->assertStringNotContainsString('storage/', $html);
         $this->assertStringContainsString('eb-photo-empty', $html);
-        $this->assertStringContainsString('Eocambo Tours</div>', $html); // text brand instead of a logo image
+        $this->assertStringNotContainsString('eb-brand', $html); // the banner has no logo or brand block (the navbar shows the brand)
     }
 
     public function test_admin_can_hide_offer_then_hide_banner_then_show_again(): void

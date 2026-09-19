@@ -9,6 +9,7 @@ class BannerSetting extends Model
     // The website uses only ONE row in this table. Get it with BannerSetting::first().
     protected $fillable = [
         'logo',
+        'brand_name',
         'small_title',
         'main_title',
         'highlight_text',

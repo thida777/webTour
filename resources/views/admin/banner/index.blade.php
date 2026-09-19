@@ -32,7 +32,8 @@
                         <div class="card shadow-sm mb-4">
                             <div class="card-header fw-bold">1. Branding</div>
                             <div class="card-body">
-                                @include('admin.banner._image', ['name' => 'logo', 'label' => 'Logo image', 'circle' => true, 'help' => 'The logo is shown as a circle in the navbar, footer and banner. If no logo is uploaded, the text "Eocambo Tours" is shown instead.'])
+                                @include('admin.banner._text', ['name' => 'brand_name', 'label' => 'Brand name', 'help' => 'The name shown next to the logo in the navbar and footer. The last word is shown in gold. Leave empty to use "Eocambo Tours".'])
+                                @include('admin.banner._image', ['name' => 'logo', 'label' => 'Logo image', 'circle' => true, 'help' => 'The logo is shown as a circle in the navbar and footer (not in the banner). If no logo is uploaded, only the brand name is shown.'])
                             </div>
                         </div>
 

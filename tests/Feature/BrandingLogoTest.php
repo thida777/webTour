@@ -79,16 +79,37 @@ class BrandingLogoTest extends TestCase
         $html = $this->get('/')->getContent();
 
         $this->assertStringContainsString('.brand-logo { flex: none; border-radius: 50%; object-fit: cover;', $html);
-        $this->assertStringContainsString('.brand-logo-nav { width: 45px; height: 45px;', $html);
-        $this->assertStringContainsString('.brand-logo-footer { width: 56px; height: 56px;', $html);
-        $this->assertStringContainsString('.eb-logo { width: 80px; height: 80px; border-radius: 50%; object-fit: cover;', $html);   // home banner logo
+        $this->assertStringContainsString('.brand-logo-nav { width: 38px; height: 38px;', $html);
+        $this->assertStringContainsString('.brand-logo-footer { width: 48px; height: 48px;', $html);
+        $this->assertStringNotContainsString('.eb-logo', $html);   // the banner has no logo styles any more
     }
 
-    public function test_home_banner_logo_is_the_same_uploaded_logo(): void
+    public function test_the_logo_is_not_shown_in_the_home_banner(): void
     {
         $logo = $this->uploadLogo();
+        $url = asset('storage/' . $logo);
 
-        $this->get('/')->assertSee('src="' . asset('storage/' . $logo) . '" alt="Eocambo Tours logo" class="eb-logo"', false);
+        $html = $this->get('/')->assertOk()->getContent();
+        $start = strpos($html, '<section class="eb-banner"');
+        $banner = substr($html, $start, strpos($html, '</section>', $start) - $start);
+
+        // Not in the banner (no logo image, no brand text block) ...
+        $this->assertStringNotContainsString($url, $banner);
+        $this->assertStringNotContainsString('eb-logo', $banner);
+        $this->assertStringNotContainsString('eb-brand', $banner);
+        $this->assertStringNotContainsString('<img', $this->withoutPhotos($banner));   // no image other than the 3 collage photos
+        // ... but the banner text and the navbar/footer logo are all still there.
+        $this->assertStringContainsString('TRAVEL', $banner);
+        $this->assertStringContainsString('BOOK NOW', $banner);
+        [$nav, $footer] = $this->parts($html);
+        $this->assertStringContainsString($url, $nav);
+        $this->assertStringContainsString($url, $footer);
+    }
+
+    /** Banner HTML without the three collage photos (they are <img> tags inside .eb-photo). */
+    private function withoutPhotos(string $banner): string
+    {
+        return preg_replace('#<div class="eb-photo[^"]*">.*?</div>#s', '', $banner);
     }
 
     public function test_admin_navbar_shows_the_logo_but_admin_pages_still_have_no_footer(): void

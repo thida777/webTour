@@ -32,8 +32,6 @@
     .eb-wave { position: absolute; left: 0; bottom: 0; width: 100%; height: 70px; z-index: 0; display: block; }
 
     /* Left side */
-    .eb-logo { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; margin-bottom: 1.25rem; box-shadow: 0 0 0 3px rgba(255, 255, 255, .7); }
-    .eb-brand { font-weight: 700; font-size: 1.25rem; letter-spacing: .04em; margin-bottom: 1.25rem; }
     .eb-small { font-size: 1.5rem; font-style: italic; font-weight: 600; margin: 0; }
     .eb-main { font-size: clamp(3.25rem, 9vw, 5.5rem); font-weight: 800; line-height: 1; letter-spacing: .02em; margin: 0; text-shadow: 0 3px 10px rgba(0, 0, 0, .25); }
     .eb-highlight { font-size: clamp(1.9rem, 5vw, 3rem); font-weight: 800; letter-spacing: .12em; color: var(--eb-gold); margin: 0; text-shadow: 0 2px 8px rgba(0, 0, 0, .3); }
@@ -89,14 +87,8 @@
     <div class="container eb-inner">
         <div class="row g-4 align-items-center">
 
-            {{-- LEFT: logo, headline, button, contact --}}
+            {{-- LEFT: headline, button, contact (the logo is shown in the navbar and footer, not in the banner) --}}
             <div class="col-12 col-md-6 col-lg-4">
-                @if ($banner->logo)
-                    <img src="{{ asset('storage/' . $banner->logo) }}" alt="Eocambo Tours logo" class="eb-logo">
-                @else
-                    <div class="eb-brand">Eocambo Tours</div>
-                @endif
-
                 @if ($banner->small_title)
                     <p class="eb-small">{{ $banner->small_title }}</p>
                 @endif
